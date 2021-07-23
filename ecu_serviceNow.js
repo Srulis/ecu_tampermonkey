@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         eLA and ServiceNow
 // @namespace    http://tampermonkey.net/
-// @version      2021.07.22
+// @version      2021.07.23.1
 // @description  try to take over the world!
 // @author       Daniel Gilogley
 // @match        https://edithcowan.service-now.com/incident.do*
@@ -89,7 +89,7 @@ function load_the_buttons(){
         $('#'+inc_req+'\\.u_next_step').val($('option:contains("Set to Resolved")').val());
 
         //click "Save"
-        //$('#sysverb_update_and_stay').click();
+        $('#sysverb_update_and_stay').click();
 
     });
 
@@ -104,7 +104,7 @@ function load_the_buttons(){
         $('#'+inc_req+'\\.u_next_step').val($('option:contains("Customer to perform action")').val());
 
         //click "Save"
-        //$('#sysverb_update_and_stay').click();
+        $('#sysverb_update_and_stay').click();
 
     });
 
@@ -135,7 +135,7 @@ function dear_person(){
         //Build the new comment area
         var new_comment_text_area = "To " + person_name + "\n\n";
         new_comment_text_area += comment_text_area + "\n\n";
-        new_comment_text_area += "Regards,\n" + analyst_name + "\n" + assignment_group;
+        new_comment_text_area += "Regards\n" + analyst_name + "\n" + assignment_group;
 
         //increase the size of the "Comments" box - Too small!
         $('textarea#'+inc_req+'\\.comments').attr('style','overflow: auto hidden;overflow-wrap: normal;resize: vertical;height:500px;')
@@ -152,7 +152,7 @@ function dear_person(){
     //increase the size of the "Comments" box - Too small!
     $('textarea#'+inc_req+'\\.u_solution').attr('style','overflow: auto hidden;overflow-wrap: normal;resize: vertical;height:250px;')
 
-    //Function that pushes the
+    //Function that pushes the resolution comment
     $('#dg_to_user_resolve_comment').click(function(e){
         cl("Clicked 'To user' in the resolution");
         e.preventDefault();
@@ -162,7 +162,7 @@ function dear_person(){
         //Build the new comment area
         var new_comment_text_area = "To " + person_name + "\n\n";
         new_comment_text_area += comment_text_area + "\n\n";
-        new_comment_text_area += "Regards,\n" + analyst_name + "\n" + assignment_group;
+        new_comment_text_area += "Regards\n" + analyst_name + "\n" + assignment_group;
 
         //increase the size of the "Comments" box - Too small!
         $('textarea#'+inc_req+'\\.u_solution').attr('style','overflow: auto hidden;overflow-wrap: normal;resize: vertical;height:500px;')
