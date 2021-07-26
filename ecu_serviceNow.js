@@ -1,11 +1,11 @@
 // ==UserScript==
 // @name         eLA and ServiceNow
 // @namespace    http://tampermonkey.net/
-// @version      2021.07.25
+// @version      2021.07.26
 // @description  try to take over the world!
 // @author       Daniel Gilogley
-// @match        https://edithcowan.service-now.com/incident.do*
-// @match        https://edithcowan.service-now.com/u_request.do*
+// @match        https://edithcowan.service-now.com/*incident.do*
+// @match        https://edithcowan.service-now.com/*u_request.do*
 // @icon         https://www.kindpng.com/picc/m/276-2764918_servicenow-icon-transparent-hd-png-download.png
 // @grant        GM_getValue
 // @grant        GM_setValue
@@ -24,13 +24,7 @@ const dear_to = "Hi ";
 // ====== MAIN FUNCTION =========
 $(document).ready(function(){
     //Determine if we're on the INC or REQ page...
-    if(document.location.pathname === "/incident.do"){
-        inc_req = "incident";
-        cl("Welcome to the INCIDENTS page... inc_req = " + inc_req);
-    }else if(document.location.pathname === "/u_request.do"){
-        inc_req = "u_request";
-        cl("Welcome to the REQUESTS page... inc_req = " + inc_req);
-    }
+    inc_req = inc_or_req();
 
     //Get the assigned analyst name and assignment group
     analyst_name = $('#sys_display\\.'+inc_req+'\\.assigned_to').attr('value'); //Get the analyst name name
@@ -54,6 +48,32 @@ $(document).ready(function(){
 //===== Incident Functions =====
 
 //===== Shared functions =====
+
+function inc_or_req(url){
+    //There are sometimes when the pathname is not absolute, so the function is now based on indexOf
+
+    //If no variable is pushed through, use default
+    if(url==undefined ||url==null || url=="") url=document.location.pathname;
+
+    var tmp_inc_or_req = "false";
+
+    cl("Running the INC or REQ function for document pathname: " + url);
+
+    //Determine if INC or REQ
+    if(url.indexOf("/incident.do") >= 0){ //IF Request
+        tmp_inc_or_req = "incident";
+        cl("Welcome to the INCIDENTS page... inc_req = " + inc_req);
+    }else if(url.indexOf("/u_request.do") >=0 ){ //IF Incident
+        tmp_inc_or_req = "u_request";
+        cl("Welcome to the REQUESTS page... inc_req = " + inc_req);
+    }else{
+        return false;
+    }
+    //Return the INC or Request type
+    return tmp_inc_or_req;
+}
+
+
 function load_the_items(){
     cl("Load the dynamic page items...");
     //Add the "To/Dear Person" button
@@ -76,6 +96,7 @@ function load_the_buttons(){
     var customer_step_html = '<br><button class="form_action_button action_context btn btn-default" style="white-space: nowrap" type="submit" id="dg_customer_step_button">Customer Next Step</button>';
     $('span.label-text:contains("Additional comments")').after(customer_step_html);
 
+    cl("Loaded buttons, applying the button rules");
     //ResolveNow Function and actions
     $('#dg_resolve_button').click(function(e){
         e.preventDefault();
@@ -153,6 +174,7 @@ function dear_person(){
     //increase the size of the "Comments" box - Too small!
     $('textarea#'+inc_req+'\\.u_solution').attr('style','overflow: auto hidden;overflow-wrap: normal;resize: vertical;height:250px;')
 
+    cl("Completed loading the 'To: " +person_name+ "' links. Creating the rules for when user's click on the links.");
     //Function that pushes the resolution comment
     $('#dg_to_user_resolve_comment').click(function(e){
         cl("Clicked 'To user' in the resolution");
