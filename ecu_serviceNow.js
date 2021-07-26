@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         eLA and ServiceNow
 // @namespace    http://tampermonkey.net/
-// @version      2021.07.23.1
+// @version      2021.07.25
 // @description  try to take over the world!
 // @author       Daniel Gilogley
 // @match        https://edithcowan.service-now.com/incident.do*
@@ -19,6 +19,7 @@ var analyst_name = "false";
 var assignment_group = "false";
 var ticket_number = "false";
 var person_name = "false";
+const dear_to = "Hi ";
 
 // ====== MAIN FUNCTION =========
 $(document).ready(function(){
@@ -133,7 +134,7 @@ function dear_person(){
         var comment_text_area = $('textarea#'+inc_req+'\\.comments').val();
 
         //Build the new comment area
-        var new_comment_text_area = "To " + person_name + "\n\n";
+        var new_comment_text_area = dear_to + person_name + "\n\n";
         new_comment_text_area += comment_text_area + "\n\n";
         new_comment_text_area += "Regards\n" + analyst_name + "\n" + assignment_group;
 
@@ -160,7 +161,7 @@ function dear_person(){
         var comment_text_area = $('textarea#'+inc_req+'\\.u_solution').val(); //u_request.u_solution
 
         //Build the new comment area
-        var new_comment_text_area = "To " + person_name + "\n\n";
+        var new_comment_text_area = dear_to + person_name + "\n\n";
         new_comment_text_area += comment_text_area + "\n\n";
         new_comment_text_area += "Regards\n" + analyst_name + "\n" + assignment_group;
 
@@ -208,7 +209,7 @@ function returnUrlParam(search_term){
     return return_param;
 }
 
-//timeSamper
+//timeStamper
 function timeStamp() {
     var now = new Date();
     var currentMonth = now.getMonth() + 1;
