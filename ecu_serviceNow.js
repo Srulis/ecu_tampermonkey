@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         eLA and ServiceNow
 // @namespace    http://tampermonkey.net/
-// @version      2021.07.26
+// @version      2021.07.27
 // @description  try to take over the world!
 // @author       Daniel Gilogley
 // @match        https://edithcowan.service-now.com/*incident.do*
@@ -53,7 +53,7 @@ function inc_or_req(url){
     //There are sometimes when the pathname is not absolute, so the function is now based on indexOf
 
     //If no variable is pushed through, use default
-    if(url==undefined ||url==null || url=="") url=document.location.pathname;
+    if(url == undefined || url == null || url=="") url=document.location.pathname;
 
     var tmp_inc_or_req = "false";
 
@@ -62,15 +62,15 @@ function inc_or_req(url){
     //Determine if INC or REQ
     if(url.indexOf("/incident.do") >= 0){ //IF Request
         tmp_inc_or_req = "incident";
-        cl("Welcome to the INCIDENTS page... inc_req = " + inc_req);
+        cl("Welcome to the INCIDENTS page... inc_req = " + tmp_inc_or_req);
+        return tmp_inc_or_req;
     }else if(url.indexOf("/u_request.do") >=0 ){ //IF Incident
         tmp_inc_or_req = "u_request";
-        cl("Welcome to the REQUESTS page... inc_req = " + inc_req);
+        cl("Welcome to the REQUESTS page... inc_req = " + tmp_inc_or_req);
+        return tmp_inc_or_req;
     }else{
         return false;
     }
-    //Return the INC or Request type
-    return tmp_inc_or_req;
 }
 
 
@@ -82,9 +82,32 @@ function load_the_items(){
     //Load the buttons within the page
     load_the_buttons();
 
+    //If there is "Accecpt" - Then disable the other buttons as it can do werid things... according to hollie...
+    is_there_accept();
+
     return false;
 }
 
+//Function to disable to buttons if there is "Accecpt" on the page
+function is_there_accept(){
+    
+    if($('button:contains("Accept")').length > 0){
+        //Change the state of the DG Buttons to disabled
+        cl("There is an Accept button, so disable the DG buttons")
+        //ResolveNow && Customer Next
+        $('#dg_resolve_button, #dg_customer_step_button').attr('disabled','disabled');
+        //Change the text of rht DG buttons
+        $('#dg_resolve_button, #dg_customer_step_button').text("You need to Accept!");
+        return true;
+    }
+
+    //There wasn't accept - So do nothing!
+    cl("No Accept - So do nothing!");
+    return false;
+}
+
+
+//Function to load in the "ResoveNow" and "Customer" buttons
 function load_the_buttons(){
     cl("Load the 'Load the buttons' function");
 
@@ -224,35 +247,37 @@ function getItem(itemName) {
     return retrievedObject;
 }
 
-function returnUrlParam(search_term){
+
+//Under development
+/*function returnUrlParam(search_term){
     var return_param = urlParams.get(search_term);
     //return_param = return_param.toLowerCase();
     if(return_param !== null) return_param = return_param.toString();
     return return_param;
-}
+}*/
 
 //timeStamper
 function timeStamp() {
     var now = new Date();
     var currentMonth = now.getMonth() + 1;
     if (currentMonth < 10) currentMonth = "0" + currentMonth;
-    var date = [ now.getDate(), currentMonth, now.getFullYear() ];
+    
+    //Date in UTC format
+    var date = [now.getFullYear(),currentMonth,now.getDate()];
+
     var time = [ now.getHours(), now.getMinutes(), now.getSeconds() ];
-    var suffix = ( time[0] < 12 ) ? "AM" : "PM";
-    time[0] = ( time[0] < 12 ) ? time[0] : time[0] - 12;
-    time[0] = time[0] || 12;
+    
     for ( var i = 1; i < 3; i++ ) {
         if ( time[i] < 10 ) {
             time[i] = "0" + time[i];
         }
     }
-    return date.join("/") + " " + time.join(":") + " " + suffix;
+    return date.join("/") + " " + time.join(":");
 }
 
 // Console Log time stamp
 function cl(console_text){
     if(debug) console.log(timeStamp() +" | " + console_text);
-    return false;
 }
 
 /*HTML Objects
