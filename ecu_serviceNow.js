@@ -1,7 +1,7 @@
 // ==UserScript==
-// @name         eLA and ServiceNow
+// @name         DG Tools for ServiceNow
 // @namespace    http://tampermonkey.net/
-// @version      2021.07.27
+// @version      2021.07.28
 // @description  try to take over the world!
 // @author       Daniel Gilogley
 // @match        https://edithcowan.service-now.com/*incident.do*
@@ -13,13 +13,13 @@
 // ==/UserScript==
 
 // ===== Global Veriables =====
-const debug = true;
+const debug = true; //Debug mode
 var inc_req = "false";
 var analyst_name = "false";
 var assignment_group = "false";
 var ticket_number = "false";
 var person_name = "false";
-const dear_to = "Hi ";
+const dear_to = "Hi "; //For mark to change if he wants
 
 // ====== MAIN FUNCTION =========
 $(document).ready(function(){
@@ -29,7 +29,7 @@ $(document).ready(function(){
     //Get the assigned analyst name and assignment group
     analyst_name = $('#sys_display\\.'+inc_req+'\\.assigned_to').attr('value'); //Get the analyst name name
     analyst_name = toTitleCase(analyst_name); // Title Case the user's Name
-    assignment_group = $('#sys_display\\.'+inc_req+'\\.assignment_group').attr('value'); //Get the analyst name name
+    assignment_group = $('#sys_display\\.'+inc_req+'\\.assignment_group').attr('value'); //Get the assignment group name
     ticket_number = $('#sys_readonly\\.'+inc_req+'\\.number').attr('value'); //Get the Ticket number
     person_name = $('#sys_display\\.'+inc_req+'\\.u_requestor').attr('value'); //Get the users name from the requestor field
     person_name = toTitleCase(person_name); // Title Case the user's Name
@@ -123,7 +123,7 @@ function load_the_buttons(){
     //ResolveNow Function and actions
     $('#dg_resolve_button').click(function(e){
         e.preventDefault();
-        cl("Someone click 'ResolveNow'");
+        cl("Someone clicked 'ResolveNow' button");
         //disbable the button
         $('#dg_resolve_button').attr('disabled','disabled');
 
@@ -141,7 +141,7 @@ function load_the_buttons(){
     //Customer to perform action button
     $('#dg_customer_step_button').click(function(e){
         e.preventDefault();
-        cl("Someone click 'Customer to Perform action button'");
+        cl("Someone clicked 'Customer to Perform action' button'");
         //disbable the button
         $('#dg_customer_step_button').attr('disabled','disabled');
 
