@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name         DG Tools for ServiceNowD
+// @name         DG Tools for ServiceNow
 // @namespace    http://tampermonkey.net/
 // @version      2021.07.29-02
 // @description  try to take over the world!
