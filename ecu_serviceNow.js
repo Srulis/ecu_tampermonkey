@@ -1,7 +1,7 @@
 // ==UserScript==
-// @name         DG Tools for ServiceNow
+// @name         DG Tools for ServiceNowD
 // @namespace    http://tampermonkey.net/
-// @version      2021.07.28
+// @version      2021.07.29-01
 // @description  try to take over the world!
 // @author       Daniel Gilogley
 // @match        https://edithcowan.service-now.com/*incident.do*
@@ -19,6 +19,7 @@ var analyst_name = "false";
 var assignment_group = "false";
 var ticket_number = "false";
 var person_name = "false";
+var person_full_name = "false";
 const dear_to = "Hi "; //For mark to change if he wants
 
 // ====== MAIN FUNCTION =========
@@ -31,9 +32,16 @@ $(document).ready(function(){
     analyst_name = toTitleCase(analyst_name); // Title Case the user's Name
     assignment_group = $('#sys_display\\.'+inc_req+'\\.assignment_group').attr('value'); //Get the assignment group name
     ticket_number = $('#sys_readonly\\.'+inc_req+'\\.number').attr('value'); //Get the Ticket number
-    person_name = $('#sys_display\\.'+inc_req+'\\.u_requestor').attr('value'); //Get the users name from the requestor field
-    person_name = toTitleCase(person_name); // Title Case the user's Name
-    cl("Requestor is: " + person_name);
+
+    person_full_name = $('#sys_display\\.'+inc_req+'\\.u_requestor').attr('value'); //Get the users name from the requestor field
+
+    cl("Person full Name: " + person_full_name);
+    //get the person's first name
+    person_name = person_first_name(person_full_name);
+
+    person_full_name = toTitleCase(person_full_name); // Title Case the user's Name after figureing out the first name
+
+    cl("Requestor is: " + person_full_name + " | First name: " + person_name);
 
     cl("Ticket: " + ticket_number +" which is a " + inc_req + " assinged to " + analyst_name + " in assignment group: " +assignment_group);
 
@@ -48,6 +56,33 @@ $(document).ready(function(){
 //===== Incident Functions =====
 
 //===== Shared functions =====
+
+function person_first_name(full_name){
+    cl("In the person first name function");
+    //Mini function to determine if string is capatlised. At ECU capatilised string is surname, which we'll drop.
+    const isUpperCase = (string) => /^[A-Z\\']*$/.test(string)
+
+    //Split the name array
+    var name_array = full_name.split(" ");
+    cl("This is the name split on space: " + name_array);
+
+    //create empty return name
+    var name_return = "";
+
+    for (var i = 0; i < name_array.length; i++) {
+        cl("On word " + (i+1) + " of " + name_array.length + ". Current word is: " + name_array[i]);
+        //If the name is uppercase
+        if(isUpperCase(name_array[i]) == false){
+            cl("Is upper-case string: " + isUpperCase(name_array[i]));
+            name_return = name_return + " " + name_array[i];
+        }else cl("Is upper-case string: " + isUpperCase(name_array[i]));
+        cl("Current First name: " + name_return);
+    }
+
+    //Trim the name
+    name_return = name_return.trim();
+    return name_return;
+}
 
 function inc_or_req(url){
     //There are sometimes when the pathname is not absolute, so the function is now based on indexOf
@@ -90,7 +125,7 @@ function load_the_items(){
 
 //Function to disable to buttons if there is "Accecpt" on the page
 function is_there_accept(){
-    
+
     if($('button:contains("Accept")').length > 0){
         //Change the state of the DG Buttons to disabled
         cl("There is an Accept button, so disable the DG buttons")
@@ -163,7 +198,7 @@ function dear_person(){
 
     //Dear / To person in the comments field
     //create the To User HTML object
-    var to_user_html = '<a href="#" id="dg_to_user_comment" class="label-text">To: ' + person_name +'<br>';
+    var to_user_html = '<a href="#" id="dg_to_user_comment" class="label-text">To: ' + person_full_name +'<br>';
     $('span#status\\.'+inc_req+'\\.comments').before(to_user_html);
 
     //increase the size of the "Comments" box - Too small!
@@ -191,7 +226,7 @@ function dear_person(){
     });
 
     //Dear/to person in the closure field
-    var to_user_resolve_html = '<a href="#" id="dg_to_user_resolve_comment" class="label-text">To: ' + person_name +'<br>';
+    var to_user_resolve_html = '<a href="#" id="dg_to_user_resolve_comment" class="label-text">To: ' + person_full_name +'<br>';
     $('span.label-text:contains("Customer solution")').before(to_user_resolve_html);
 
     //increase the size of the "Comments" box - Too small!
@@ -222,12 +257,24 @@ function dear_person(){
 //======Tool Functions======
 
 //--- TitleCase function ---
-function toTitleCase(str) {
-    str = str.toLowerCase();
-    return str.replace(/(?:^|\s)\w/g, function(match) {
-        return match.toUpperCase();
-    });
+//New title case function for ones with ' and Mc and Mac
+function toTitleCase(name) {
+    var replacer = function (whole, prefix, word) {
+        var ret = [];
+
+        if (prefix) {
+            ret.push(prefix.charAt(0).toUpperCase());
+            ret.push(prefix.substr(1).toLowerCase());
+        }
+
+        ret.push(word.charAt(0).toUpperCase());
+        ret.push(word.substr(1).toLowerCase());
+        return ret.join('');
+    }
+    var pattern = /\b(ma?c)?([a-z]+)/ig;
+    return name.replace(pattern, replacer);
 }
+
 
 //Encode and store and item in local stoage
 function storeItem(storeName, storeValue) {
@@ -261,12 +308,12 @@ function timeStamp() {
     var now = new Date();
     var currentMonth = now.getMonth() + 1;
     if (currentMonth < 10) currentMonth = "0" + currentMonth;
-    
+
     //Date in UTC format
     var date = [now.getFullYear(),currentMonth,now.getDate()];
 
     var time = [ now.getHours(), now.getMinutes(), now.getSeconds() ];
-    
+
     for ( var i = 1; i < 3; i++ ) {
         if ( time[i] < 10 ) {
             time[i] = "0" + time[i];
