@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         DG Tools for ServiceNowD
 // @namespace    http://tampermonkey.net/
-// @version      2021.07.29-01
+// @version      2021.07.29-02
 // @description  try to take over the world!
 // @author       Daniel Gilogley
 // @match        https://edithcowan.service-now.com/*incident.do*
@@ -56,33 +56,6 @@ $(document).ready(function(){
 //===== Incident Functions =====
 
 //===== Shared functions =====
-
-function person_first_name(full_name){
-    cl("In the person first name function");
-    //Mini function to determine if string is capatlised. At ECU capatilised string is surname, which we'll drop.
-    const isUpperCase = (string) => /^[A-Z\\']*$/.test(string)
-
-    //Split the name array
-    var name_array = full_name.split(" ");
-    cl("This is the name split on space: " + name_array);
-
-    //create empty return name
-    var name_return = "";
-
-    for (var i = 0; i < name_array.length; i++) {
-        cl("On word " + (i+1) + " of " + name_array.length + ". Current word is: " + name_array[i]);
-        //If the name is uppercase
-        if(isUpperCase(name_array[i]) == false){
-            cl("Is upper-case string: " + isUpperCase(name_array[i]));
-            name_return = name_return + " " + name_array[i];
-        }else cl("Is upper-case string: " + isUpperCase(name_array[i]));
-        cl("Current First name: " + name_return);
-    }
-
-    //Trim the name
-    name_return = name_return.trim();
-    return name_return;
-}
 
 function inc_or_req(url){
     //There are sometimes when the pathname is not absolute, so the function is now based on indexOf
@@ -255,6 +228,36 @@ function dear_person(){
 }
 
 //======Tool Functions======
+
+//---- First Name Function ---
+//Function to determine a users first name based on the ECU logic of lastname is always UPPERCASE
+function person_first_name(full_name){
+    cl("In the person first name function");
+    //Mini function to determine if string is capatlised. At ECU capatilised string is surname, which we'll drop.
+    const isUpperCase = (string) => /^[A-Z\\']*$/.test(string)
+
+    //Split the name array
+    var name_array = full_name.split(" ");
+    cl("This is the name split on space: " + name_array);
+
+    //create empty return name
+    var name_return = "";
+
+    for (var i = 0; i < name_array.length; i++) {
+        cl("On word " + (i+1) + " of " + name_array.length + ". Current word is: " + name_array[i]);
+        //If the name is uppercase
+        if(isUpperCase(name_array[i]) == false){
+            cl("Is upper-case string: " + isUpperCase(name_array[i]));
+            name_return = name_return + " " + name_array[i];
+        }else cl("Is upper-case string: " + isUpperCase(name_array[i]));
+        cl("Current First name: " + name_return);
+    }
+
+    //Trim the name
+    name_return = name_return.trim();
+    return name_return;
+}
+
 
 //--- TitleCase function ---
 //New title case function for ones with ' and Mc and Mac
