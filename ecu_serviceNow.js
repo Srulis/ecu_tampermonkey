@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         DG Tools for ServiceNow
 // @namespace    http://tampermonkey.net/
-// @version      2021.07.29-02
+// @version      2021.07.29.02
 // @description  try to take over the world!
 // @author       Daniel Gilogley
 // @match        https://edithcowan.service-now.com/*incident.do*
@@ -21,6 +21,7 @@ var ticket_number = "false";
 var person_name = "false";
 var person_full_name = "false";
 const dear_to = "Hi "; //For mark to change if he wants
+var contact_details_array = {};
 
 // ====== MAIN FUNCTION =========
 $(document).ready(function(){
@@ -45,6 +46,9 @@ $(document).ready(function(){
 
     cl("Ticket: " + ticket_number +" which is a " + inc_req + " assinged to " + analyst_name + " in assignment group: " +assignment_group);
 
+    //Get the contact details
+    contact_details_array = get_contact_details();
+
     //Load the dynamic items on the page
     load_the_items();
 
@@ -56,6 +60,26 @@ $(document).ready(function(){
 //===== Incident Functions =====
 
 //===== Shared functions =====
+
+function get_contact_details(){
+    var get_contact_deets = $(inc_req'\\.u_contact_details').val();
+    get_contact_deets = get_contact_deets.trim();
+
+    //If there are no contact details, return false
+    if(get_contact_deets == null || get_contact_deets == "" || get_contact_deets == undefined) return false;
+
+    //If there are, seperate out the contact details based on the split of "|"
+    get_contact_deets = get_contact_deets.split(" | ");
+
+    var return_array = {
+        username: get_contact_deets[0],
+        email: get_contact_deets[1],
+        phone: get_contact_deets[2],
+        mobile: get_contact_deets[3],
+    }
+
+    return return_array;
+}
 
 function inc_or_req(url){
     //There are sometimes when the pathname is not absolute, so the function is now based on indexOf
