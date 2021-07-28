@@ -234,7 +234,7 @@ function dear_person(){
 function person_first_name(full_name){
     cl("In the person first name function");
     //Mini function to determine if string is capatlised. At ECU capatilised string is surname, which we'll drop.
-    const isUpperCase = (string) => /^[A-Z\\']*$/.test(string)
+    const isUpperCase = (string) => /^[A-Z\\'\\-]*$/.test(string)
 
     //Split the name array
     var name_array = full_name.split(" ");
