@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         DG Tools for ServiceNow
 // @namespace    http://tampermonkey.net/
-// @version      2021.07.29.03
+// @version      2021.07.30
 // @description  try to take over the world!
 // @author       Daniel Gilogley
 // @match        https://edithcowan.service-now.com/*incident.do*
@@ -20,7 +20,7 @@ var assignment_group = "false";
 var ticket_number = "false";
 var person_name = "false";
 var person_full_name = "false";
-const dear_to = "Hi "; //For mark to change if he wants
+var dear_to = "Hi"; //Auto changes if your name is Mark later on in the script
 var contact_details_json = {};
 
 // ====== MAIN FUNCTION =========
@@ -34,6 +34,9 @@ $(document).ready(function(){
     assignment_group = $('#sys_display\\.'+inc_req+'\\.assignment_group').attr('value'); //Get the assignment group name
     ticket_number = $('#sys_readonly\\.'+inc_req+'\\.number').attr('value'); //Get the Ticket number
 
+    //If your name is Mark "dear_to" becomes "Hello"
+    if(analyst_name.indexOf("Mark")>=0) dear_to = "Hello";
+
     person_full_name = $('#sys_display\\.'+inc_req+'\\.u_requestor').attr('value'); //Get the users name from the requestor field
 
     cl("Person full Name: " + person_full_name);
@@ -44,7 +47,7 @@ $(document).ready(function(){
 
     cl("Requestor is: " + person_full_name + " | First name: " + person_name);
 
-    cl("Ticket: " + ticket_number +" which is a " + inc_req + " assinged to " + analyst_name + " in assignment group: " +assignment_group);
+    cl(dear_to +" "+ analyst_name +", your Ticket: " + ticket_number +" which is a " + inc_req + " assinged to " + analyst_name + " in assignment group: " +assignment_group);
 
     //Get the contact details
     contact_details_json = get_contact_details();
@@ -86,22 +89,23 @@ function contact_details_do_something(){
     //Use the phone and mobile numbers as TEL links
     // Under the Contact details tab
     var local_phone = contact_details_json.phone;
-    //Make it a local number as opposed to the +61 one
-    local_phone = local_phone.split("+61").join("0");
+    
     cl("Local phone number: " + local_phone);
 
-    var phone_html_link = '<a href="tel:' + local_phone +'" id="dg_contact_phone" class="label-text">Phone: ' + local_phone +'</a><br>';
-    $('#status\\.' + inc_req + '\\.u_contact_details').before(phone_html_link);
-    cl('Putting the Phone link in');
-    $('#dg_contact_phone').click(function(e){
-        e.preventDefault();
-        window.open("tel:"+local_phone, "_self");
-        cl("Someone clicked the phone link");
-    });
+    if(local_phone != undefined && local_phone.toLowerCase() != "no phone listed"){
+        var phone_html_link = '<a href="tel:' + local_phone +'" id="dg_contact_phone" class="label-text">Phone: ' + local_phone +'</a><br>';
+        $('#status\\.' + inc_req + '\\.u_contact_details').before(phone_html_link);
+        cl('Putting the Phone link in');
+        $('#dg_contact_phone').click(function(e){
+            e.preventDefault();
+            window.open("tel:"+local_phone, "_self");
+            cl("Someone clicked the phone link");
+        });
+    }else cl("No phone listed");
 
     //Now the same for mobile - If there is one!
     var local_mobile = contact_details_json.mobile;
-    if( local_mobile.toLowerCase() != "no mobile listed"){
+    if(local_mobile != undefined && local_mobile.toLowerCase() != "no mobile listed"){
         cl("Wow! there is a mobile number!");
         var mobile_html_link = '<a href="tel:' + local_mobile +'" id="dg_contact_mobile" class="label-text">Mobile: ' + local_mobile +'</a><br>';
         $('#status\\.' + inc_req + '\\.u_contact_details').before(mobile_html_link);
@@ -110,7 +114,7 @@ function contact_details_do_something(){
             window.open("tel:" + local_mobile, "_self");
             cl("Someone clicked the Mobile link");
         });
-    }
+    }else cl("No mobile listed");
     //Should we do something with the other contact details - Yes
     //Will I? - Maybe in a later release
 }
@@ -128,14 +132,21 @@ function get_contact_details(){
     //If there are, seperate out the contact details based on the split of "|"
     get_contact_deets = get_contact_deets.split("|");
 
-    var return_array = {
-        username: get_contact_deets[0].trim(),
-        email: get_contact_deets[1].trim(),
-        phone: get_contact_deets[2].trim(),
-        mobile: get_contact_deets[3].trim(),
-    }
+    //Return the Contact details as an array
+    var contact_return_json = {};
 
-    return return_array;
+
+    //Check to see if there are contact details, and push them to the JSON object to return
+    //Username
+    if(get_contact_deets[0] != undefined) contact_return_json['username'] = get_contact_deets[0].trim();
+    //Email
+    if(get_contact_deets[1] != undefined) contact_return_json['email'] = get_contact_deets[1].trim();
+    //Phone
+    if(get_contact_deets[2] != undefined) contact_return_json['phone'] = get_contact_deets[2].trim();
+    //Mobile
+    if(get_contact_deets[3] != undefined) contact_return_json['mobile'] = get_contact_deets[3].trim();
+
+    return contact_return_json;
 }
 
 // Is this ticket an INC or a REQ?!
