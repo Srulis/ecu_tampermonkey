@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         DG Tools for ServiceNow
 // @namespace    http://tampermonkey.net/
-// @version      2021.07.30
+// @version      2021.08.03
 // @description  try to take over the world!
 // @author       Daniel Gilogley
 // @match        https://edithcowan.service-now.com/*incident.do*
@@ -35,7 +35,8 @@ $(document).ready(function(){
     ticket_number = $('#sys_readonly\\.'+inc_req+'\\.number').attr('value'); //Get the Ticket number
 
     //If your name is Mark "dear_to" becomes "Hello"
-    if(analyst_name.indexOf("Mark")>=0) dear_to = "Hello";
+    if(analyst_name.indexOf("Mark")>=0) dear_to = "Hello ";
+    else dear_to = "Hi ";
 
     person_full_name = $('#sys_display\\.'+inc_req+'\\.u_requestor').attr('value'); //Get the users name from the requestor field
 
@@ -89,7 +90,7 @@ function contact_details_do_something(){
     //Use the phone and mobile numbers as TEL links
     // Under the Contact details tab
     var local_phone = contact_details_json.phone;
-    
+
     cl("Local phone number: " + local_phone);
 
     if(local_phone != undefined && local_phone.toLowerCase() != "no phone listed"){
@@ -328,11 +329,16 @@ function person_first_name(full_name){
             cl("Is upper-case string: " + isUpperCase(name_array[i]));
             name_return = name_return + " " + name_array[i];
         }else cl("Is upper-case string: " + isUpperCase(name_array[i]));
-        cl("Current First name: " + name_return);
     }
+
+
+    //if the name contains (Staff) or (STAFF) remove it or anything inside the parentheses
+    name_return = name_return.replace(/ *\([^)]*\) */g, "");
 
     //Trim the name
     name_return = name_return.trim();
+
+    cl("Current First name: " + name_return);
     return name_return;
 }
 
