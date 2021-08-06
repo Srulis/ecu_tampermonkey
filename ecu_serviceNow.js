@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         DG Tools for ServiceNow
 // @namespace    http://tampermonkey.net/
-// @version      2021.08.03
+// @version      2021.08.06
 // @description  try to take over the world!
 // @author       Daniel Gilogley
 // @match        https://edithcowan.service-now.com/*incident.do*
@@ -393,11 +393,17 @@ function getItem(itemName) {
 //timeStamper
 function timeStamp() {
     var now = new Date();
+    
+    //Add leading zero to month
     var currentMonth = now.getMonth() + 1;
     if (currentMonth < 10) currentMonth = "0" + currentMonth;
 
+    //Add leading zero to day
+    var currentDay = now.getDate()
+    if (currentDay < 10) currentDay = "0" + currentDay;
+
     //Date in UTC format
-    var date = [now.getFullYear(),currentMonth,now.getDate()];
+    var date = [now.getFullYear(),currentMonth,currentDay];
 
     var time = [ now.getHours(), now.getMinutes(), now.getSeconds() ];
 
