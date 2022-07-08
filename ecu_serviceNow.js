@@ -445,7 +445,7 @@ function signature(analyst_name,assignment_group){
     else return_signature += analyst_name + "\n" + assignment_group;   
 
 
-    return toString(return_signature);
+    return return_signature;
 
     /* - From Spreadsheet
     Daniel Gilogley   Snr. Learning Environments Advisor
