@@ -267,7 +267,8 @@ function dear_person(){
         //Build the new comment area
         var new_comment_text_area = dear_to + person_name + "\n\n";
         new_comment_text_area += comment_text_area + "\n\n";
-        new_comment_text_area += "Regards\n" + analyst_name + "\n" + assignment_group;
+
+        new_comment_text_area += signature(analyst_name,assignment_group);
 
         //increase the size of the "Comments" box - Too small!
         $('textarea#'+inc_req+'\\.comments').attr('style','overflow: auto hidden;overflow-wrap: normal;resize: vertical;height:500px;')
@@ -295,7 +296,15 @@ function dear_person(){
         //Build the new comment area
         var new_comment_text_area = dear_to + person_name + "\n\n";
         new_comment_text_area += comment_text_area + "\n\n";
-        new_comment_text_area += "Regards\n" + analyst_name + "\n" + assignment_group;
+
+        /*if(analyst_name.indexOf("Daniel") >= 0){
+            assignment_group = assignment_group+" Team Lead\nSnr. Learning Environments Advisor";
+        }*/
+
+        //signature(analyst_name,assignment_group);
+
+        //new_comment_text_area += "Regards\n" + analyst_name + "\n" + assignment_group;
+        new_comment_text_area += signature(analyst_name,assignment_group);
 
         //increase the size of the "Comments" box - Too small!
         $('textarea#'+inc_req+'\\.u_solution').attr('style','overflow: auto hidden;overflow-wrap: normal;resize: vertical;height:500px;')
@@ -419,6 +428,37 @@ function timeStamp() {
 function cl(console_text){
     if(debug) console.log(timeStamp() +" | " + console_text);
 }
+
+// Name signature
+function signature(analyst_name,assignment_group){
+    var return_signature = "Warm Regards\n";
+    
+    if(analyst_name.indexOf("Daniel Gilogley")>=0) return_signature += analyst_name + "\nSnr. Learning Environments Advisor\n" + assignment_group + " Team Lead";
+    else if(analyst_name.indexOf("Ben Seabourne")>=0) return_signature += analyst_name + "\nSnr. Support Officer\n" + assignment_group;
+    else if(analyst_name.indexOf("Mark Turner")>=0) return_signature += analyst_name + "\nSnr. Support Coordinator\n" + assignment_group;
+    else if(analyst_name.indexOf("Ian Schilling")>=0) return_signature += analyst_name + "\nLearning Technologies Support Officer (LTSO)\n" + assignment_group;
+    else if(analyst_name.indexOf("Rachel Simpson")>=0) return_signature += analyst_name + "\nLearning Technologies Support Officer (LTSO)\n" + assignment_group;
+    else if(analyst_name.indexOf("Dorian Salzmann")>=0) return_signature += analyst_name + "\nLearning Technologies Support Officer (LTSO)\n" + assignment_group;
+    else if(analyst_name.indexOf("Kate Abbott")>=0) return_signature += analyst_name + "\nLearning Technologies Support Officer\n" + assignment_group;
+    else if(analyst_name.indexOf("Jon Georgiou")>=0) return_signature += analyst_name + "\nLearning Technologies Support Officer (LTSO)\n" + assignment_group;   
+    else if(analyst_name.indexOf("Brendan Cuff")>=0) return_signature += analyst_name + "\nLearning Technologies Trainer\n" + assignment_group;   
+    else return_signature += analyst_name + "\n" + assignment_group;   
+
+
+    return toString(return_signature);
+
+    /* - From Spreadsheet
+    Daniel Gilogley   Snr. Learning Environments Advisor
+    Ben Seabourne   Snr. Support Officer
+    Mark Turner Snr. Support Coordinator    
+    Ian Schilling   Learning Technologies Support Officer (LTSO)
+    Rachel Simpson  Learning Technologies Support Officer (LTSO)
+    Dorian Salzmann Learning Technologies Support Officer (LTSO)
+    Kate Abbott Learning Technologies Support Officer
+    Jon Georgiou    "Learning Technologies Support Officer (LTSO)
+    Brendan Cuff    Learning Technologies Trainer */
+}
+
 
 /*HTML Objects
 
