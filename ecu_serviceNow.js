@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         DG Tools for ServiceNow
 // @namespace    http://tampermonkey.net/
-// @version      2022.07.08
+// @version      2022.10.17.1
 // @description  try to take over the world!
 // @author       Daniel Gilogley
 // @match        https://edithcowan.service-now.com/*incident.do*
@@ -79,6 +79,9 @@ function load_the_items(){
 
     //Do something with the contact details
     if(contact_details_json != false || contact_details_json != "false") contact_details_do_something();
+
+    //Load the Email button
+    email_inject();
 
     return false;
 }
@@ -431,7 +434,7 @@ function cl(console_text){
 
 // Name signature
 function signature(analyst_name,assignment_group){
-    var return_signature = "Warm Regards\n";
+    var return_signature = "Warm regards\n";
     
     if(analyst_name.indexOf("Daniel Gilogley")>=0) return_signature += analyst_name + "\nSnr. Learning Environments Advisor\n" + assignment_group + " Team Lead";
     else if(analyst_name.indexOf("Ben Seabourne")>=0) return_signature += analyst_name + "\nSnr. Support Officer\n" + assignment_group;
@@ -465,3 +468,40 @@ function signature(analyst_name,assignment_group){
 <button class="form_action_button header  action_context btn btn-default" style="white-space: nowrap" type="submit">Resolved</button>
 
 //*/
+
+//Function to get a URL Paramater
+function URL_paramater(param, this_url){
+    if(this_url == undefined || this_url == null || this_url == '') this_url = window.location.href;
+    var url = new URL(this_url);
+    var return_this = url.searchParams.get(param);
+
+    cl("Returning " + param +" : " + return_this);
+
+    return return_this;
+}
+
+//function to add Email button to top of the page
+function email_inject(inc_req){
+    //Add this HTML Button to create emails
+    var email_button_html = '<button id="dg_email_client_open" src="images/icons/email.gifx" class="icon-mail"> Email</button>';
+    $('div.container-fluid div.navbar-right').prepend(email_button_html);
+    cl("Added Email HTML");
+
+    //Function once a user clicks on the Email button
+    $('#dg_email_client_open').click(function(e){
+        cl("User has clicked on email button...");
+        e.preventDefault();
+
+        //get the Database ID of the INC / REQ
+        var sys_id = URL_paramater('sys_id');
+
+        //Incident or req
+        var inc_req = inc_or_req();
+
+        //this is the URL of a Email object
+        var email_url = 'https://edithcowan.service-now.com/email_client.do?sysparm_table='+inc_req+'&sysparm_sys_id=' + sys_id + '&sysparm_target='+inc_req+'&sys_target='+inc_req+'&sys_uniqueValue=' + sys_id + '&sys_row=0&sysparm_encoded_record=&sysparm_domain_restore=false&sysparm_stack=no';
+
+        window.open(email_url, '_blank').focus();
+
+    });
+}
