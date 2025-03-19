@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         DG Tools for ServiceNow
 // @namespace    http://tampermonkey.net/
-// @version      2025.03.19.3
+// @version      2025.03.19.4
 // @description  try to take over the world!
 // @author       Daniel Gilogley
 // @match        https://edithcowan.service-now.com/*incident.do*
@@ -630,7 +630,7 @@ function tiny_mce_insert(this_text_area){
         height:500,
         width:800,
         browser_spellcheck: true,
-        plugins: ['code','link'],
+        plugins: ['code','link','lists'],
         toolbar: toolbar_options,
         menubar: 'HTML',
         setup: (editor) => {
