@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         DG Tools for ServiceNow
 // @namespace    http://tampermonkey.net/
-// @version      2022.10.17.1
+// @version      2025.03.18.1
 // @description  try to take over the world!
 // @author       Daniel Gilogley
 // @match        https://edithcowan.service-now.com/*incident.do*
@@ -56,6 +56,12 @@ $(document).ready(function(){
 
     //Load the dynamic items on the page
     load_the_items();
+
+    //convert html in comments to actual html
+    html_history();
+
+    //load tinyMCE
+    tinymce_loader(inc_req);
 
     return false;
 });
@@ -247,6 +253,7 @@ function load_the_buttons(){
 }
 
 function dear_person(){
+
     //Function to create a "To" option for the comments
 
     cl("Start the Dear/To Person funcion and load the button and apply the rule to the link")
@@ -254,7 +261,7 @@ function dear_person(){
     //Dear / To person in the comments field
     //create the To User HTML object
     var to_user_html = '<a href="#" id="dg_to_user_comment" class="label-text">To: ' + person_full_name +'</a><br>';
-    $('span#status\\.'+inc_req+'\\.comments').before(to_user_html);
+    //$('span#status\\.'+inc_req+'\\.comments').before(to_user_html);
 
     //increase the size of the "Comments" box - Too small!
     $('textarea#'+inc_req+'\\.comments').attr('style','overflow: auto hidden;overflow-wrap: normal;resize: vertical;height:250px;')
@@ -405,7 +412,7 @@ function getItem(itemName) {
 //timeStamper
 function timeStamp() {
     var now = new Date();
-    
+
     //Add leading zero to month
     var currentMonth = now.getMonth() + 1;
     if (currentMonth < 10) currentMonth = "0" + currentMonth;
@@ -435,7 +442,7 @@ function cl(console_text){
 // Name signature
 function signature(analyst_name,assignment_group){
     var return_signature = "Warm regards\n";
-    
+
     if(analyst_name.indexOf("Daniel Gilogley")>=0) return_signature += analyst_name + "\nSnr. Learning Environments Advisor\n" + assignment_group + " Team Lead";
     else if(analyst_name.indexOf("Ben Seabourne")>=0) return_signature += analyst_name + "\nSnr. Support Officer\n" + assignment_group;
     else if(analyst_name.indexOf("Mark Turner")>=0) return_signature += analyst_name + "\nSnr. Support Coordinator\n" + assignment_group;
@@ -443,9 +450,9 @@ function signature(analyst_name,assignment_group){
     else if(analyst_name.indexOf("Rachel Simpson")>=0) return_signature += analyst_name + "\nLearning Technologies Support Officer (LTSO)\n" + assignment_group;
     else if(analyst_name.indexOf("Dorian Salzmann")>=0) return_signature += analyst_name + "\nLearning Technologies Support Officer (LTSO)\n" + assignment_group;
     else if(analyst_name.indexOf("Kate Abbott")>=0) return_signature += analyst_name + "\nLearning Technologies Support Officer\n" + assignment_group;
-    else if(analyst_name.indexOf("Jon Georgiou")>=0) return_signature += analyst_name + "\nLearning Technologies Support Officer (LTSO)\n" + assignment_group;   
-    else if(analyst_name.indexOf("Brendan Cuff")>=0) return_signature += analyst_name + "\nLearning Technologies Trainer\n" + assignment_group;   
-    else return_signature += analyst_name + "\n" + assignment_group;   
+    else if(analyst_name.indexOf("Jon Georgiou")>=0) return_signature += analyst_name + "\nLearning Technologies Support Officer (LTSO)\n" + assignment_group;
+    else if(analyst_name.indexOf("Brendan Cuff")>=0) return_signature += analyst_name + "\nLearning Technologies Trainer\n" + assignment_group;
+    else return_signature += analyst_name + "\n" + assignment_group;
 
 
     return return_signature;
@@ -453,7 +460,7 @@ function signature(analyst_name,assignment_group){
     /* - From Spreadsheet
     Daniel Gilogley   Snr. Learning Environments Advisor
     Ben Seabourne   Snr. Support Officer
-    Mark Turner Snr. Support Coordinator    
+    Mark Turner Snr. Support Coordinator
     Ian Schilling   Learning Technologies Support Officer (LTSO)
     Rachel Simpson  Learning Technologies Support Officer (LTSO)
     Dorian Salzmann Learning Technologies Support Officer (LTSO)
@@ -504,4 +511,86 @@ function email_inject(inc_req){
         window.open(email_url, '_blank').focus();
 
     });
+}
+
+
+function tinymce_loader(inc_req){
+
+    var apiKey = "8mgt5bood7vtcmdoou2d86uv60g775vdrwv74oer3cee5qah";
+    var script = document.createElement('script');
+    script.src = 'https://cdn.tiny.cloud/1/' + apiKey + '/tinymce/5/tinymce.min.js';
+    script.referrerPolicy = 'origin';
+    script.onerror = function() {
+        cl('Failed to load TinyMCE script.');
+    };
+
+
+    var tiny_data =
+
+
+        script.onload = function() {
+            // Initialize TinyMCE on the existing text area
+            cl('Initialize TinyMCE on the existing text area...');
+            tiny_mce_insert(inc_req + '\\.comments');
+            //tiny_mce_insert(inc_req + '\\.u_solution');
+
+
+        };
+    document.head.appendChild(script);
+    cl("Adding TinyMCE Script to the Page");
+}
+
+function tiny_mce_insert(this_text_area){
+    var toolbar_options = 'dearUser | undo redo | styles | link | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | forecolor backcolor emoticons | code | customDateButton';
+
+    var this_selector = "#" + this_text_area;
+
+    var this_signature = signature(analyst_name,assignment_group);
+    let formattedText = this_signature.replace(/\n/g, '<br>');
+
+    //customer comments box
+    tinymce.init({
+        selector: this_selector,
+        height: 500,
+        width:800,
+        plugins: ['code','link'],
+        toolbar: toolbar_options,
+        menubar: 'HTML',
+        setup: (editor) => {
+            editor.ui.registry.addButton('dearUser', {
+                text: 'To ' + person_name,
+                onAction: (_) => editor.insertContent('To ' + person_name + '<p></p><p>' + formattedText + '</p>')
+            });
+
+
+            const toTimeHtml = (date) => `<time datetime="${date.toString()}">${date.toDateString()}</time>`;
+
+            editor.ui.registry.addButton('customDateButton', {
+                icon: 'insert-time',
+                tooltip: 'Insert Current Date',
+                enabled: false,
+                onAction: (_) => editor.insertContent(toTimeHtml(new Date())),
+                onSetup: (buttonApi) => {
+                    const editorEventCallback = (eventApi) => {
+                        buttonApi.setEnabled(eventApi.element.nodeName.toLowerCase() !== 'time');
+                    };
+                    editor.on('NodeChange', editorEventCallback);
+
+                    /* onSetup should always return the unbind handlers */
+                    return () => editor.off('NodeChange', editorEventCallback);
+                }
+            });
+        },
+    });
+
+}
+
+// function to make the comment history have HTML content
+function html_history(){
+    
+    cl("Converting comment history form text to HTML")
+    $("#element\\." + inc_req + "\\.comments\\.additional > span > div > div:nth-of-type(3n)").each(function(){
+        $(this).html($(this).text());
+    });
+
 }
