@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         DG Tools for ServiceNow
 // @namespace    http://tampermonkey.net/
-// @version      2025.03.19.4
+// @version      2025.03.19.5
 // @description  try to take over the world!
 // @author       Daniel Gilogley
 // @match        https://edithcowan.service-now.com/*incident.do*
@@ -594,10 +594,9 @@ function canvas_search(){
 
 
 function tinymce_loader(){
-
-    var apiKey = "8mgt5bood7vtcmdoou2d86uv60g775vdrwv74oer3cee5qah";
     var script = document.createElement('script');
-    script.src = 'https://cdn.tiny.cloud/1/' + apiKey + '/tinymce/5/tinymce.min.js';
+    //    script.src = 'https://cdn.tiny.cloud/1/' + apiKey + '/tinymce/5/tinymce.min.js';
+    script.src = 'https://edithcowan.service-now.com/scripts/tinymce_default/node_modules/sn-tinymce/js/tinymce/tinymce.min.js';
     script.referrerPolicy = 'origin';
     script.onerror = function() {
         cl('Failed to load TinyMCE script.');
