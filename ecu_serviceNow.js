@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         DG Tools for ServiceNow
 // @namespace    http://tampermonkey.net/
-// @version      2025.03.19.2
+// @version      2025.03.19.3
 // @description  try to take over the world!
 // @author       Daniel Gilogley
 // @match        https://edithcowan.service-now.com/*incident.do*
@@ -574,7 +574,21 @@ function canvas_search(){
         window.open(url, '_blank');
 
     });//*/
+    // on the enter too
+    $("#dg_course_search_input").on("keydown", function(e) {
+        if (event.key === "Enter") {
+            // Call your function here
+            e.preventDefault();
 
+            var dg_course_search_input = $('#dg_course_search_input').val();
+            cl("Searching four course: " + dg_course_search_input);
+
+            dg_course_search_input = dg_course_search_input.split(" ").join("%20");
+
+            const url = "https://courses.ecu.edu.au/accounts/1?search_term=" + dg_course_search_input;
+            window.open(url, '_blank');
+        }
+    });
 
 }
 
@@ -591,14 +605,11 @@ function tinymce_loader(){
 
 
     var tiny_data =
-
-
         script.onload = function() {
             // Initialize TinyMCE on the existing text area
             cl('Initialize TinyMCE on the existing text area...');
             tiny_mce_insert(inc_req + '\\.comments');
             //tiny_mce_insert(inc_req + '\\.u_solution');
-
 
         };
     document.head.appendChild(script);
@@ -624,8 +635,8 @@ function tiny_mce_insert(this_text_area){
         menubar: 'HTML',
         setup: (editor) => {
             editor.ui.registry.addButton('dearUser', {
-                text: 'To ' + person_name,
-                onAction: (_) => editor.insertContent('To ' + person_name + '<p></p><p>' + formattedText + '</p>')
+                text: 'Hi ' + person_name,
+                onAction: (_) => editor.insertContent('Hi ' + person_name + '<p></p><p>' + formattedText + '</p>')
             });
 
 
