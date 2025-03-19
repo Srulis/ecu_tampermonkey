@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         DG Tools for ServiceNow
 // @namespace    http://tampermonkey.net/
-// @version      2025.03.18.1
+// @version      2025.03.19.1
 // @description  try to take over the world!
 // @author       Daniel Gilogley
 // @match        https://edithcowan.service-now.com/*incident.do*
@@ -60,8 +60,11 @@ $(document).ready(function(){
     //convert html in comments to actual html
     html_history();
 
+    // Add the search buttons
+    canvas_search();
+
     //load tinyMCE
-    tinymce_loader(inc_req);
+    tinymce_loader();
 
     return false;
 });
@@ -514,7 +517,69 @@ function email_inject(inc_req){
 }
 
 
-function tinymce_loader(inc_req){
+
+
+// function to make the comment history have HTML content
+function html_history() {
+    cl("Converting comment history form text to HTML");
+    $("#element\\." + inc_req + "\\.comments\\.additional > span > div > div:nth-of-type(3n)").each(function() {
+
+        var this_html = $(this).text();
+        //cl(this_html);
+        if(this_html.indexOf("</p>") >0){
+            $(this).html(this_html);
+            cl("Converting comment to HTML");
+        }
+
+    });
+}
+
+
+
+
+function canvas_search(){
+    // Canvas uers search button
+    var user_html = '<button class="btn btn-default" style="white-space: nowrap" type="submit" id="dg_canvas_user_search"><img src="https://resources.finalsite.net/images/f_auto,q_auto,t_image_size_1/v1601477778/lagunabeach/kq0odyndpqetdilrhki7/CanvasLogo.png" style="height: 13px;width: 13px;"></button>';
+
+    var user_selector = "#viewr\\." + inc_req + "\\.u_requestor";
+
+    cl("Adding the user search button")
+    $(user_selector).after(user_html);
+
+    //Open Canvs users search box
+    $('#dg_canvas_user_search').click(function(e){
+        e.preventDefault();
+        cl("Seaching for " + person_full_name);
+        var user_search = person_full_name.split(" ").join("%20");
+
+        const url = "https://courses.ecu.edu.au/accounts/1/users?search_term=" + user_search + "&role_filter_id=&include_deleted_users=false&page=";
+        window.open(url, '_blank');
+    });
+
+
+    // Add the course URL/
+    var course_html = '<div class="input-group ref-container ">    <input id="dg_course_search_input" style="width:100%;" name="dg_course_search" type="search" placeholder="Search for a Canvas Course/Unit" autocomplete="off"><span class="input-group-btn"id="dg_course_search_span"><button class="btn btn-default" style="white-space: nowrap" type="submit" id="dg_course_search_button"><img src="https://resources.finalsite.net/images/f_auto,q_auto,t_image_size_1/v1601477778/lagunabeach/kq0odyndpqetdilrhki7/CanvasLogo.png" style="height: 13px;width: 13px;"></button> </button>    </span></div>';
+
+    $('#' + inc_req + '\\.short_description').after(course_html);
+
+    $('#dg_course_search_button,#dg_course_search_span').click(function(e){
+        e.preventDefault();
+
+        var dg_course_search_input = $('#dg_course_search_input').val();
+        cl("Searching four course: " + dg_course_search_input);
+
+        dg_course_search_input = dg_course_search_input.split(" ").join("%20");
+
+        const url = "https://courses.ecu.edu.au/accounts/1?search_term=" + dg_course_search_input;
+        window.open(url, '_blank');
+
+    });//*/
+
+
+}
+
+
+function tinymce_loader(){
 
     var apiKey = "8mgt5bood7vtcmdoou2d86uv60g775vdrwv74oer3cee5qah";
     var script = document.createElement('script');
@@ -581,16 +646,6 @@ function tiny_mce_insert(this_text_area){
                 }
             });
         },
-    });
-
-}
-
-// function to make the comment history have HTML content
-function html_history(){
-    
-    cl("Converting comment history form text to HTML")
-    $("#element\\." + inc_req + "\\.comments\\.additional > span > div > div:nth-of-type(3n)").each(function(){
-        $(this).html($(this).text());
     });
 
 }
