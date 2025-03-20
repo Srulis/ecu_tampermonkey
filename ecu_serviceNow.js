@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         DG Tools for ServiceNow
 // @namespace    http://tampermonkey.net/
-// @version      2025.03.19.5
+// @version      2025.03.20.1
 // @description  try to take over the world!
 // @author       Daniel Gilogley
 // @match        https://edithcowan.service-now.com/*incident.do*
@@ -562,7 +562,7 @@ function canvas_search(){
 
     $('#' + inc_req + '\\.short_description').after(course_html);
 
-    $('#dg_course_search_button,#dg_course_search_span').click(function(e){
+    $('#dg_course_search_button').click(function(e){
         e.preventDefault();
 
         var dg_course_search_input = $('#dg_course_search_input').val();
