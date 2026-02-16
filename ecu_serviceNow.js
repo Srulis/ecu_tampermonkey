@@ -1,11 +1,12 @@
 // ==UserScript==
 // @name         DG Tools for ServiceNow
 // @namespace    http://tampermonkey.net/
-// @version      2025.03.20.1
+// @version      2026.02.16.1
 // @description  try to take over the world!
 // @author       Daniel Gilogley
 // @match        https://edithcowan.service-now.com/*incident.do*
 // @match        https://edithcowan.service-now.com/*u_request.do*
+// @match        https://edithcowan.service-now.com/*task_list.do*
 // @icon         https://www.kindpng.com/picc/m/276-2764918_servicenow-icon-transparent-hd-png-download.png
 // @grant        GM_getValue
 // @grant        GM_setValue
@@ -22,9 +23,18 @@ var person_name = "false";
 var person_full_name = "false";
 var dear_to = "Hi"; //Auto changes if your name is Mark later on in the script
 var contact_details_json = {};
+const HOW_OLD = 7; // age in which a ticket becomes stale
 
 // ====== MAIN FUNCTION =========
 $(document).ready(function(){
+
+    //check to see if on the tasks page first
+    if(document.location.pathname === "/task_list.do"){
+        cl("On the task_list_functions area");
+        task_list_functions();
+        return true;
+    }
+
     //Determine if we're on the INC or REQ page...
     inc_req = inc_or_req();
 
@@ -65,6 +75,9 @@ $(document).ready(function(){
 
     //load tinyMCE
     tinymce_loader();
+
+    //display if there are work notes
+    work_notes();
 
     return false;
 });
@@ -197,6 +210,21 @@ function is_there_accept(){
         $('#dg_resolve_button, #dg_customer_step_button').attr('disabled','disabled');
         //Change the text of rht DG buttons
         $('#dg_resolve_button, #dg_customer_step_button').text("You need to Accept!");
+        return true;
+    }
+
+    if($('#' + inc_req + "\\.state option:selected").text() == 'Awaiting Acceptance' || $('#' + inc_req + "\\.state option:selected").text() == 'New'){
+        // if the ticket has been assigned to you but you have said "in progress" - keep it the same logic as unaccecpted unassigned
+        //Change the state of the DG Buttons to disabled
+        cl("There is an Accept status, so disable the DG buttons")
+        //ResolveNow && Customer Next
+        $('#dg_resolve_button, #dg_customer_step_button').attr('disabled','disabled');
+        //Change the text of rht DG buttons
+        $('#dg_resolve_button, #dg_customer_step_button').text("You need to Accept!");
+
+        //put an accecpt button at the top
+        accepct_inject();
+
         return true;
     }
 
@@ -516,6 +544,29 @@ function email_inject(inc_req){
     });
 }
 
+function accepct_inject(){
+    //Add this HTML Button to create accecpt option
+    var Accept_button_html = '<button id="dg_acceptance_button"> Accept</button>';
+    $('div.container-fluid div.navbar-right').prepend(Accept_button_html);
+    cl("Added Acceptance HTML");
+
+    //Function once a user clicks on the Email button
+    $('#dg_acceptance_button').click(function(e){
+        cl("User has clicked on Acceptance button...");
+        e.preventDefault();
+
+        //disbable the button
+        $('#dg_acceptance_button').attr('disabled','disabled');
+
+        //Change the "Next Step" drop down to "Resolved"
+        $('#'+inc_req+'\\.u_next_step').val($('option:contains("Set to In Progress")').val());
+
+        //click "Save"
+        $('#sysverb_update_and_stay').click();
+
+
+    });
+}
 
 
 
@@ -660,3 +711,190 @@ function tiny_mce_insert(this_text_area){
     });
 
 }
+
+// Task list functions
+function task_list_functions(){
+    // get the column titles
+    var column_titles = get_coloum_titles();
+
+    // set the row coloum colours
+    set_row_colour(column_titles);
+
+    return;
+}
+
+//function to get the column titles of the tables and their column ID/Value
+function get_coloum_titles(){
+    var colunm_titles = [];
+
+    $("table#task_table > thead th").each(function(i,e){
+        //console.log($(e).text() + "\n");
+        colunm_titles.push({ key: i, value: $(e).text().trim() });
+
+    });
+    return colunm_titles;
+}
+
+// function to set the row colours
+function set_row_colour(column_titles=null){
+    // determine which column is the ticket status
+    const state_column = getKeyByValue(column_titles,"Status(state)");
+    const age_coloum = getKeyByValue(column_titles,"Updated");
+    $("table#task_table tbody tr").each(function(){
+        const this_state = $(this).find('td').eq(state_column).text().trim();
+
+        var this_row_colour = row_colour(this_state);
+
+        // determine if the ticket is state
+        // function to determine if a ticket has gone "Stale"
+        // first get its age
+        const days_since = $(this).find('td').eq(age_coloum).find('div.datex.date-timeago').text();
+        if(this_state == "Awaiting Customer" && classifyRelativeAge(days_since, HOW_OLD) == "STALE"){
+            this_row_colour = row_colour("STALE");
+        }
+
+
+        cl("This rows state: " + this_state + " and colour: " + this_row_colour + " and age is: " + days_since);
+        //set the rows background colour
+        // Apply to all <td> in this row and every descendant element within those <td>
+        $(this).find('td, td *').attr('style', function (_i, s) {
+            return (s || '') + ' background-color: ' + this_row_colour + ' !important;';
+        });
+    });
+
+}
+
+
+// function to pass through a workflow state and return a colour
+// if no colour return null, or if stale, then return STALE
+function row_colour(row_type = null) {
+    if (row_type == null) return null;
+
+    const COLOUR_INDEX = {
+        1: { label: "In Progress", name: "Gold" },
+        2: { label: "Awaiting Acceptance", name: "LightCyan" },
+        3: { label: "Monitoring", name: "LavenderBlush" },
+        4: { label: "Awaiting Customer", name: "LightGreen" },
+        5: { label: "Awaiting Appointment", name: "DarkKhaki" },
+        6: { label: "STALE", name: "Lavender" },
+        7: { label: "New", name: "LightCyan" }
+    };
+
+    // Normalise the input for safe comparison
+    const target = String(row_type).trim().toLowerCase();
+
+    // Find first item where label matches
+    const match = Object.values(COLOUR_INDEX)
+    .find(item => item.label && item.label.toLowerCase() === target);
+
+    const return_this = match ? match.name : null;
+    //cl("This row is " + row_type + " so colour is: " + return_this);
+
+    return return_this;
+}
+
+
+
+// function to get a key based on value
+function getKeyByValue(arr, value) {
+    const item = arr.find(x => x.value === value);
+    return item ? item.key : null;
+}
+
+/**
+ * Classify a relative time string. Returns "STALE" if >= thresholdDays,
+ * otherwise returns the original text. Returns null if input is falsy.
+ *
+ * Examples:
+ *  classifyRelativeAge("5 days ago")            -> "5 days ago"
+ *  classifyRelativeAge("7 days ago")            -> "STALE"
+ *  classifyRelativeAge("1 week ago")            -> "STALE"
+ *  classifyRelativeAge("23 hours ago")          -> "23 hours ago"
+ *  classifyRelativeAge("yesterday")             -> "yesterday"
+ *  classifyRelativeAge("just now")              -> "just now"
+ *
+ * @param {string} relativeText  e.g. "5 days ago", "1 week ago", "yesterday"
+ * @param {number} thresholdDays optional, default 7
+ * @returns {string|null}
+ */
+function classifyRelativeAge(relativeText, thresholdDays = 7) {
+    if (!relativeText) return null;
+
+    const days = relativeTextToDays(relativeText);
+    if (days == null) {
+        // Could not parse, return the original text
+        return relativeText;
+    }
+
+    return days >= thresholdDays ? "STALE" : relativeText;
+}
+
+/**
+ * Convert a relative time string to approximate days.
+ * Supports: just now, yesterday, seconds, minutes, hours, days, weeks, months, years.
+ * Accepts "a" or "an" e.g. "an hour ago".
+ * Returns a Number or null if it cannot parse.
+ */
+function relativeTextToDays(text) {
+    if (!text) return null;
+
+    const t = String(text).trim().toLowerCase();
+
+    if (t === "just now") return 0;
+    if (t === "yesterday") return 1;
+
+    // Match "5 days ago", "1 week ago", "a minute ago", "an hour ago", etc.
+    const m = t.match(/^(\d+|a|an)\s+(second|seconds|minute|minutes|hour|hours|day|days|week|weeks|month|months|year|years)\s+ago$/i);
+    if (!m) return null;
+
+    let amount = m[1].toLowerCase();
+    const unit = m[2].toLowerCase();
+
+    if (amount === "a" || amount === "an") amount = 1;
+    const n = Number(amount);
+    if (!Number.isFinite(n)) return null;
+
+    switch (unit) {
+        case "second":
+        case "seconds":
+            return n / 86400; // 86400 seconds per day
+        case "minute":
+        case "minutes":
+            return n / 1440; // 1440 minutes per day
+        case "hour":
+        case "hours":
+            return n / 24;
+        case "day":
+        case "days":
+            return n;
+        case "week":
+        case "weeks":
+            return n * 7;
+        case "month":
+        case "months":
+            return n * 30; // approximate
+        case "year":
+        case "years":
+            return n * 365; // approximate
+        default:
+            return null;
+    }
+}
+
+// work notes notification
+// change the display to include a small note that there are work notes and the number
+function work_notes(){
+    const count = $('#element\\.' + inc_req + '\\.work_notes\\.additional').find('hr, HR').length;
+    cl("Work notes count: " + count);
+    if(count == 0) return;
+
+
+    $('#tabs2_section span.tab_caption_text')
+        .filter(function () {
+        return $(this).text().trim() === 'Work notes (private)';
+    })
+        .text('Work notes (private) · ' + count)
+        .css("color","FireBrick");
+    return true;
+}
+
